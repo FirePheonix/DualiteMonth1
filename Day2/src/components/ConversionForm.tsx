@@ -9,11 +9,13 @@ interface ConversionFormProps {
 
 const ConversionForm: React.FC<ConversionFormProps> = ({ className = '' }) => {
   const [url, setUrl] = useState('');
+  const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [downloadData, setDownloadData] = useState<any>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +30,12 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ className = '' }) => {
       return;
     }
 
+    if (!apiKey.trim()) {
+      setError('Please enter your RapidAPI key');
+      setShowApiKeyInput(true);
+      return;
+    }
+
     setIsLoading(true);
     setError('');
     setSuccess(false);
@@ -38,7 +46,7 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ className = '' }) => {
         throw new Error('Invalid YouTube URL');
       }
 
-      const result = await convertToMp3(videoId);
+      const result = await convertToMp3(videoId, apiKey);
       
       // Add debugging information
       console.log('API Response:', result);
@@ -47,7 +55,7 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ className = '' }) => {
         setDownloadData(result);
         setSuccess(true);
       } else {
-        throw new Error(result.mess || result.msg || 'Conversion failed');
+        throw new Error(result.mess || 'Conversion failed');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -182,6 +190,7 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ className = '' }) => {
     setError('');
     setSuccess(false);
     setDownloadData(null);
+    // Keep API key for convenience
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -198,9 +207,8 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ className = '' }) => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  // Check if API is configured
-  const isApiConfigured = import.meta.env.VITE_RAPIDAPI_KEY && 
-                         import.meta.env.VITE_RAPIDAPI_KEY !== 'your_rapidapi_key_here';
+  // Check if API key is provided
+  const isApiConfigured = apiKey.trim() !== '';
 
   return (
     <div className={`w-full max-w-2xl ${className}`}>
@@ -214,7 +222,7 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ className = '' }) => {
           >
             <div className="flex items-center space-x-2 text-yellow-300">
               <AlertCircle className="w-5 h-5" />
-              <span className="font-sans font-medium">API Configuration Required</span>
+              <span className="font-sans font-medium">API Key Required</span>
             </div>
             <p className="text-yellow-200 font-sans text-sm leading-relaxed">
               To use this converter, you need to:
@@ -223,10 +231,32 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ className = '' }) => {
               <li>1. Visit <a href="https://rapidapi.com/ytjar/api/youtube-mp36" target="_blank" rel="noopener noreferrer" className="text-yellow-100 hover:text-white underline">RapidAPI YouTube MP3 API</a></li>
               <li>2. Subscribe to the API (free tier available)</li>
               <li>3. Get your API key</li>
-              <li>4. Add it to your .env file</li>
+              <li>4. Enter it in the form below</li>
             </ol>
           </motion.div>
         )}
+
+        {/* API Key Input */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="space-y-2"
+        >
+          <label className="block text-white/70 font-sans text-sm font-medium">
+            RapidAPI Key
+          </label>
+          <input
+            type="password"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder="Enter your RapidAPI key..."
+            className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-white/50 font-sans focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
+          />
+          <p className="text-white/50 font-sans text-xs">
+            Your API key is only used for this session and never stored.
+          </p>
+        </motion.div>
 
         {/* Input Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -328,18 +358,16 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ className = '' }) => {
                 </div>
               </div>
 
-              {/* Debug Info */}
-              {process.env.NODE_ENV === 'development' && (
-                <details className="bg-white/5 rounded-lg p-3">
-                  <summary className="text-white/60 font-sans text-xs cursor-pointer flex items-center space-x-2">
-                    <Info className="w-4 h-4" />
-                    <span>Debug Info (Development)</span>
-                  </summary>
-                  <pre className="text-white/50 font-mono text-xs mt-2 overflow-auto max-h-40">
-                    {JSON.stringify(downloadData, null, 2)}
-                  </pre>
-                </details>
-              )}
+              {/* Debug Info - Development Mode */}
+              <details className="bg-white/5 rounded-lg p-3">
+                <summary className="text-white/60 font-sans text-xs cursor-pointer flex items-center space-x-2">
+                  <Info className="w-4 h-4" />
+                  <span>Debug Info</span>
+                </summary>
+                <pre className="text-white/50 font-mono text-xs mt-2 overflow-auto max-h-40">
+                  {JSON.stringify(downloadData, null, 2)}
+                </pre>
+              </details>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
                 <motion.button

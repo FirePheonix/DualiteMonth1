@@ -40,14 +40,13 @@ export const extractVideoId = (url: string): string | null => {
   return match ? match[1] : null;
 };
 
-export const convertToMp3 = async (videoId: string): Promise<ConversionResponse> => {
-  // Check if API credentials are configured
-  const apiKey = import.meta.env.VITE_RAPIDAPI_KEY;
-  const apiHost = import.meta.env.VITE_RAPIDAPI_HOST;
-  
-  if (!apiKey || apiKey === 'your_rapidapi_key_here') {
-    throw new Error('API key not configured. Please add your RapidAPI key to the .env file.');
+export const convertToMp3 = async (videoId: string, apiKey: string): Promise<ConversionResponse> => {
+  // Validate API key
+  if (!apiKey || apiKey.trim() === '') {
+    throw new Error('API key is required. Please enter your RapidAPI key.');
   }
+
+  const apiHost = 'youtube-mp36.p.rapidapi.com';
 
   try {
     const response = await axios.get(`${API_BASE_URL}/dl`, {
