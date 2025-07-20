@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Loader2, Sparkles, RefreshCw, Download } from 'lucide-react';
 
-const API_KEY = prompt("Please enter your GEMINI API KEY:") || "";
+const API_KEY = prompt("Please enter your GEMINI_API_KEY here:") || "";
 // you can generate the API key from https://console.cloud.google.com/apis/credentials?project=gemini-2-0-flash-preview
 
 const ImageGenerator: React.FC = () => {
