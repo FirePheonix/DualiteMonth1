@@ -1,6 +1,6 @@
 [build]
   base = "Day2"
-  publish = "Day2/dist"
+  publish = "dist"
   command = "npm install && npm run build"
   ignore = "false"  # Never skip build
   force = "true"    # Force build even if no changes detected
