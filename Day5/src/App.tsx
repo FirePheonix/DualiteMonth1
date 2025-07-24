@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Clock, Globe, Zap, ArrowRight, Menu, X } from 'lucide-react';
+import { Play, Clock, Globe, Zap, ArrowRight, Menu, X, Settings, Eye, EyeOff } from 'lucide-react';
 import { summarizeVideo } from './services/api';
 import { extractVideoId, isValidYouTubeUrl } from './utils/youtube';
 import SummaryCard from './components/SummaryCard';
@@ -9,6 +9,15 @@ const App: React.FC = () => {
   const [videoUrl, setVideoUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showApiKeys, setShowApiKeys] = useState(false);
+  const [apiKeys, setApiKeys] = useState({
+    rapidApiKey: '',
+    geminiApiKey: ''
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    rapidApi: false,
+    gemini: false
+  });
   const [summaryResult, setSummaryResult] = useState<{
     videoId: string;
     summary: string;
@@ -22,6 +31,15 @@ const App: React.FC = () => {
         videoId: '',
         summary: '',
         error: 'Please enter a YouTube URL'
+      });
+      return;
+    }
+
+    if (!apiKeys.rapidApiKey.trim() || !apiKeys.geminiApiKey.trim()) {
+      setSummaryResult({
+        videoId: '',
+        summary: '',
+        error: 'Please provide both RapidAPI and Gemini API keys in the settings'
       });
       return;
     }
@@ -52,7 +70,7 @@ const App: React.FC = () => {
     setSummaryResult(null);
 
     try {
-      const result = await summarizeVideo(videoId);
+      const result = await summarizeVideo(videoId, apiKeys.rapidApiKey, apiKeys.geminiApiKey);
       console.log('📋 Final result:', result);
 
       if (result.success && result.summary) {
@@ -242,8 +260,83 @@ const App: React.FC = () => {
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="max-w-2xl mx-auto mb-16"
+            className="max-w-2xl mx-auto mb-8"
           >
+            {/* API Keys Settings */}
+            <div className="mb-8">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setShowApiKeys(!showApiKeys)}
+                className="flex items-center gap-2 mx-auto px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-all duration-300 mb-4"
+              >
+                <Settings className="w-4 h-4" />
+                API Keys Settings
+              </motion.button>
+              
+              {showApiKeys && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-6 mb-6"
+                >
+                  <h3 className="text-lg font-semibold text-white mb-4">Configure Your API Keys</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-white/80 mb-2">
+                        RapidAPI Key
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPasswords.rapidApi ? "text" : "password"}
+                          placeholder="Enter your RapidAPI key"
+                          value={apiKeys.rapidApiKey}
+                          onChange={(e) => setApiKeys({...apiKeys, rapidApiKey: e.target.value})}
+                          className="w-full px-4 py-3 pr-12 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswords({...showPasswords, rapidApi: !showPasswords.rapidApi})}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white"
+                        >
+                          {showPasswords.rapidApi ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <p className="text-xs text-white/60 mt-1">
+                        Get your key from <a href="https://rapidapi.com/rahilkhan224/api/youtube-video-summarizer-gpt-ai" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white underline">RapidAPI Hub</a>
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-white/80 mb-2">
+                        Google Gemini API Key
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPasswords.gemini ? "text" : "password"}
+                          placeholder="Enter your Gemini API key"
+                          value={apiKeys.geminiApiKey}
+                          onChange={(e) => setApiKeys({...apiKeys, geminiApiKey: e.target.value})}
+                          className="w-full px-4 py-3 pr-12 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPasswords({...showPasswords, gemini: !showPasswords.gemini})}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white"
+                        >
+                          {showPasswords.gemini ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <p className="text-xs text-white/60 mt-1">
+                        Get your key from <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white underline">Google AI Studio</a>
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <input
                 type="text"

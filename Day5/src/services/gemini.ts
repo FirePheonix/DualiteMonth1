@@ -1,14 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-
-if (!API_KEY) {
-  throw new Error("VITE_GEMINI_API_KEY is not defined in your environment variables.");
-}
-
-const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
 function parseTranscript(transcriptData: any): string {
   if (typeof transcriptData === 'string') {
     try {
@@ -30,9 +21,17 @@ function parseTranscript(transcriptData: any): string {
   return JSON.stringify(transcriptData);
 }
 
-export async function getSummaryFromGemini(transcriptData: any): Promise<string> {
+export async function getSummaryFromGemini(transcriptData: any, apiKey: string): Promise<string> {
   try {
     console.log('🧠 Sending transcript to Gemini for summarization...');
+    
+    if (!apiKey || !apiKey.trim()) {
+      throw new Error("Gemini API key is required but not provided.");
+    }
+    
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
     const transcriptText = parseTranscript(transcriptData);
 
     if (transcriptText.length < 50) {

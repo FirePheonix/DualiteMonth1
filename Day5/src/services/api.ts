@@ -3,15 +3,6 @@ import { getSummaryFromGemini } from './gemini';
 
 const API_BASE_URL = 'https://youtube-video-summarizer-gpt-ai.p.rapidapi.com';
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'X-RapidAPI-Key': import.meta.env.VITE_RAPIDAPI_KEY || '7fac2d9681mshedba379fc5d0752p113290jsn5a815cbe5953',
-    'X-RapidAPI-Host': import.meta.env.VITE_RAPIDAPI_HOST || 'youtube-video-summarizer-gpt-ai.p.rapidapi.com',
-    'Content-Type': 'application/json',
-  },
-});
-
 export interface SummaryResponse {
   success: boolean;
   summary?: string;
@@ -19,9 +10,18 @@ export interface SummaryResponse {
   rawResponse?: any;
 }
 
-export const summarizeVideo = async (videoId: string): Promise<SummaryResponse> => {
+export const summarizeVideo = async (videoId: string, rapidApiKey: string, geminiApiKey: string): Promise<SummaryResponse> => {
   try {
     console.log('🚀 Making API call for video ID:', videoId);
+    
+    const api = axios.create({
+      baseURL: API_BASE_URL,
+      headers: {
+        'X-RapidAPI-Key': rapidApiKey,
+        'X-RapidAPI-Host': 'youtube-video-summarizer-gpt-ai.p.rapidapi.com',
+        'Content-Type': 'application/json',
+      },
+    });
     
     // The only reliable endpoint seems to be the transcript one.
     const response = await api.get(`/api/v1/get-transcript-v2?video_id=${videoId}&platform=youtube`);
@@ -33,7 +33,7 @@ export const summarizeVideo = async (videoId: string): Promise<SummaryResponse> 
     }
     
     // Now, use Gemini to generate the actual summary from the transcript
-    const finalSummary = await getSummaryFromGemini(response.data);
+    const finalSummary = await getSummaryFromGemini(response.data, geminiApiKey);
     
     return {
       success: true,

@@ -10,6 +10,7 @@ interface ConversionFormProps {
 const ConversionForm: React.FC<ConversionFormProps> = ({ className = '' }) => {
   const [url, setUrl] = useState('');
   const [apiKey, setApiKey] = useState('');
+  const [geminiKey, setGeminiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -30,9 +31,14 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ className = '' }) => {
       return;
     }
 
+
     if (!apiKey.trim()) {
       setError('Please enter your RapidAPI key');
       setShowApiKeyInput(true);
+      return;
+    }
+    if (!geminiKey.trim()) {
+      setError('Please enter your Gemini API key');
       return;
     }
 
@@ -210,6 +216,9 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ className = '' }) => {
   // Check if API key is provided
   const isApiConfigured = apiKey.trim() !== '';
 
+  const isGeminiConfigured = geminiKey.trim() !== '';
+  const isApiConfigured = apiKey.trim() !== '' && isGeminiConfigured;
+
   return (
     <div className={`w-full max-w-2xl ${className}`}>
       <div className="space-y-6">
@@ -236,7 +245,7 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ className = '' }) => {
           </motion.div>
         )}
 
-        {/* API Key Input */}
+        {/* API Key Inputs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -254,7 +263,27 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ className = '' }) => {
             className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-white/50 font-sans focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
           />
           <p className="text-white/50 font-sans text-xs">
-            Your API key is only used for this session and never stored.
+            Your RapidAPI key is only used for this session and never stored.
+          </p>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.15 }}
+          className="space-y-2"
+        >
+          <label className="block text-white/70 font-sans text-sm font-medium">
+            Gemini API Key
+          </label>
+          <input
+            type="password"
+            value={geminiKey}
+            onChange={(e) => setGeminiKey(e.target.value)}
+            placeholder="Enter your Gemini API key..."
+            className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl text-white placeholder-white/50 font-sans focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40 transition-all duration-300"
+          />
+          <p className="text-white/50 font-sans text-xs">
+            Your Gemini API key is only used for this session and never stored.
           </p>
         </motion.div>
 
@@ -281,7 +310,7 @@ const ConversionForm: React.FC<ConversionFormProps> = ({ className = '' }) => {
               
               <motion.button
                 type="submit"
-                disabled={isLoading || !url.trim() || !isApiConfigured}
+                  disabled={isLoading || !url.trim() || !isApiConfigured}
                 whileHover={{ scale: isApiConfigured ? 1.05 : 1 }}
                 whileTap={{ scale: isApiConfigured ? 0.95 : 1 }}
                 className="px-8 py-4 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl text-white font-sans font-medium tracking-wide hover:bg-white/30 hover:border-white/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 min-w-[140px]"
