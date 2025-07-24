@@ -1,7 +1,7 @@
 import { QuoteData, ChartData, FinancialsData, ApiError, ChartResponse, ChartSettings } from '../types/stock';
 
 const API_BASE_URL = 'https://yahoo-finance-real-time1.p.rapidapi.com';
-const API_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
+const API_KEY = prompt('Enter your RapidAPI key');
 const API_HOST = import.meta.env.VITE_RAPIDAPI_HOST;
 
 const headers = {

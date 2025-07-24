@@ -10,6 +10,7 @@ function App() {
   const [code, setCode] = useState<string>('print("Hello World!")');
   const [output, setOutput] = useState<string>('');
   const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [geminiKey, setGeminiKey] = useState<string>('');
 
   const getDefaultCode = (language: Language): string => {
     switch (language) {
@@ -41,9 +42,14 @@ function App() {
     setOutput('Running...');
     
     try {
-      // Fixed API endpoint - using gemini-1.5-flash model
-      const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyBhkX5KyrYhzs8dtcTVLDH8YHxGzyDGOfg';
-      
+      if (!geminiKey.trim()) {
+        setOutput('Please enter your Gemini API key.');
+        setIsRunning(false);
+        return;
+      }
+      // Use user-provided Gemini API key
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey.trim()}`;
+
       const requestBody = {
         contents: [
           {
@@ -125,11 +131,23 @@ Expected output format: Plain text output only, exactly as it would appear in a 
 
   return (
     <div className="h-screen bg-gray-900 text-white flex flex-col">
+      {/* Gemini API Key Input */}
+      <div className="bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center space-x-4">
+        <label htmlFor="gemini-key" className="text-sm text-gray-300">Gemini API Key:</label>
+        <input
+          id="gemini-key"
+          type="password"
+          value={geminiKey}
+          onChange={e => setGeminiKey(e.target.value)}
+          placeholder="Enter your Gemini API key..."
+          className="px-3 py-1 rounded bg-gray-900 border border-gray-600 text-white text-sm w-96 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <span className="text-xs text-gray-400">(Required to run code)</span>
+      </div>
+
       <Header onRun={handleRun} isRunning={isRunning} />
-      
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        
         <div className="flex-1 flex">
           <div className="flex-1 border-r border-gray-700">
             <CodeEditor
@@ -138,13 +156,11 @@ Expected output format: Plain text output only, exactly as it would appear in a 
               onChange={setCode}
             />
           </div>
-          
           <div className="w-96">
             <Console output={output} />
           </div>
         </div>
       </div>
-      
       <div className="border-t border-gray-700 px-4 py-2 flex items-center space-x-4 text-sm text-gray-400">
         <select
           value={selectedLanguage}
